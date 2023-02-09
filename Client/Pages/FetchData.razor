@@ -1,0 +1,86 @@
+﻿@page "/fetchdata"
+@using ArgosyUpdaterConsoleBLZ.Shared
+@inject HttpClient Http
+
+<PageTitle>Machines view</PageTitle>
+<p>Machines, sync staus, versions ...</p>
+
+@if (machines == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <SfGrid DataSource="@machines.Value" Width="100%" Height="100%" ClipMode=ClipMode.Ellipsis 
+                AllowPaging="true" AllowSorting="true" AllowFiltering="true" AllowResizing="true" AllowGrouping="true" AllowMultiSorting="true" AllowReordering="true" >
+        <GridPageSettings PageSizes="@(new string[] { "5", "10", "15", "20", "50", "All" })" PageSize="15"></GridPageSettings>
+
+        <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
+
+        <GridEvents QueryCellInfo="CustomizeCell" TValue="Machines.Machine"></GridEvents>
+
+        <GridColumns>
+        <GridColumn Field=@nameof(Machines.Machine.MachineName) HeaderText="Machine Name" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.IPadress) HeaderText="IP " Width="140" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.UserName) HeaderText="User Name" Width="125" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.LastSync) HeaderText="Sync Date" Format="dd.MM.yyyy hh:mm" Type="ColumnType.DateTime" TextAlign="TextAlign.Right" Width="110"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.AppFolderVersions) HeaderText="App versions" Width="130" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.ArgosyUpdaterVersion) HeaderText="AU version" Width="95"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.LogChanges) HeaderText="Log Changes" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.LogErrors) HeaderText="Log Errors" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+        </GridColumns>
+
+        <GridTemplates>
+            <DetailTemplate>
+                @{
+                    var machine = (context as Machines.Machine);
+                    <table class="detailtable" width="100%">
+                        <colgroup>
+                            <col width="100%">
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span style="font-weight: 500; font-size:large; color: forestgreen;">LogChanges : </span> @machine.LogChanges
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span style="font-weight: 500; font-size:large; "> </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span style="font-weight: 500; font-size:large; color: red;" >LogErrors :  </span> @machine.LogErrors
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                }
+            </DetailTemplate>
+        </GridTemplates>
+
+     </SfGrid>
+
+}
+
+@code {
+    private Machines.Root? machines;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string url = "http://audata.du.laus.hr/v4/mssql-argosy/dbo_ArgosyUpdaterMachines";
+        machines = await Http.GetFromJsonAsync<Machines.Root>(url);
+    }
+
+    public void CustomizeCell(QueryCellInfoEventArgs<Machines.Machine> args)
+    {
+        if (args.Column.Field == "LastSync")
+        {
+            if (args.Data.LastSync < DateTime.Now.AddDays(-10) )
+            {
+                args.Cell.AddStyle(new string[] { "background-color: LightPink" });
+            }
+        }
+    }
+}
