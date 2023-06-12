@@ -4,12 +4,6 @@ namespace ArgosyUpdaterConsoleBLZ.Shared
 {
     public class Machines
     {
-        public class Root
-        {
-            public string? Odatacontext { get; set; }
-            public List<Machine>? Value
-            { get; set; }
-        }
 
         public class Machine
         {

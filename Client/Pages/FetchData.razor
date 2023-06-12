@@ -1,6 +1,7 @@
 ﻿@page "/fetchdata"
 @using ArgosyUpdaterConsoleBLZ.Shared
 @inject HttpClient Http
+@inject NavigationManager Navigator
 
 <PageTitle>Machines view</PageTitle>
 <p>Machines, sync staus, versions ...</p>
@@ -11,7 +12,7 @@
 }
 else
 {
-    <SfGrid DataSource="@machines.Value" Width="100%" Height="100%" ClipMode=ClipMode.Ellipsis 
+    <SfGrid DataSource="@machines" Width="100%" Height="100%" ClipMode=ClipMode.Ellipsis 
                 AllowPaging="true" AllowSorting="true" AllowFiltering="true" AllowResizing="true" AllowGrouping="true" AllowMultiSorting="true" AllowReordering="true" >
         <GridPageSettings PageSizes="@(new string[] { "5", "10", "15", "20", "50", "All" })" PageSize="15"></GridPageSettings>
 
@@ -28,6 +29,15 @@ else
         <GridColumn Field=@nameof(Machines.Machine.ArgosyUpdaterVersion) HeaderText="AU version" Width="95"></GridColumn>
         <GridColumn Field=@nameof(Machines.Machine.LogChanges) HeaderText="Log Changes" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
         <GridColumn Field=@nameof(Machines.Machine.LogErrors) HeaderText="Log Errors" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
+        <GridColumn HeaderText="Actions" TextAlign="TextAlign.Center" Width="120">
+                <Template>
+                    @{
+                        Machines.Machine machine = (context as Machines.Machine);
+
+                        <button @onclick="() => DeleteMachine(machine)">Delete</button>
+                    }
+                </Template>
+        </GridColumn>
         </GridColumns>
 
         <GridTemplates>
@@ -65,12 +75,16 @@ else
 }
 
 @code {
-    private Machines.Root? machines;
+
+
+    private List<Machines.Machine> machines;
 
     protected override async Task OnInitializedAsync()
     {
-        string url = "http://audata.du.laus.hr/v4/mssql-argosy/dbo_ArgosyUpdaterMachines";
-        machines = await Http.GetFromJsonAsync<Machines.Root>(url);
+        string url = Navigator.BaseUri + "machines/get";
+        
+        machines = await Http.GetFromJsonAsync<List<Machines.Machine>>(url);
+      
     }
 
     public void CustomizeCell(QueryCellInfoEventArgs<Machines.Machine> args)
@@ -82,5 +96,16 @@ else
                 args.Cell.AddStyle(new string[] { "background-color: LightPink" });
             }
         }
+    }
+
+    private async Task DeleteMachine(Machines.Machine machine) 
+    {
+        string url_del = Navigator.BaseUri + "machines/delete?machineId=" + machine.MachineName;
+        var result = await Http.GetAsync(url_del);
+
+        //refresh
+        string url = Navigator.BaseUri + "machines/get";
+        machines = await Http.GetFromJsonAsync<List<Machines.Machine>>(url);
+        
     }
 }

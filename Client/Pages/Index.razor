@@ -1,7 +1,13 @@
 ﻿@page "/"
+@inject NavigationManager Navigator
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Welcome admins, use machine view to see update status!</h1>
 
-Welcome admins
+@code {
+    protected override void OnInitialized()
+    {
+        Navigator.NavigateTo("/fetchdata");
+    }
+}
