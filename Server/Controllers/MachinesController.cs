@@ -17,30 +17,35 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
         }
 
         [HttpGet]
-        public List<Machines.Machine> Get()
+        public async Task<List<Machines.Machine>> Get(CancellationToken cancellationToken)
         {
 
             //direct fetch from DB
-            MyDbContext myDbContext = new MyDbContext();
-            return myDbContext.ArgosyUpdaterMachines.FromSql($"Select * from ArgosyUpdaterMachines").ToList();
+            using MyDbContext myDbContext = new MyDbContext();
+            return await myDbContext.ArgosyUpdaterMachines.FromSql($"Select * from ArgosyUpdaterMachines").AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        [HttpGet]
-        public string Delete(string machineId)
+        [HttpDelete]
+        public async Task<IActionResult> Delete(string machineId, CancellationToken cancellationToken)
         {
 
             try
             {
-                MyDbContext myDbContext = new MyDbContext();
-                var mch = myDbContext.ArgosyUpdaterMachines.Where(s => s.MachineName == machineId).FirstOrDefault();
+                using MyDbContext myDbContext = new MyDbContext();
+                var mch = await myDbContext.ArgosyUpdaterMachines.FirstOrDefaultAsync(s => s.MachineName == machineId, cancellationToken);
+                if (mch == null)
+                    return NotFound();
+
                 myDbContext.ArgosyUpdaterMachines.Remove(mch);
+                await myDbContext.SaveChangesAsync(cancellationToken);
 
-                myDbContext.SaveChanges();
-
-                return "SUCCESS";
+                _logger.LogInformation("Machine {MachineName} deleted by {User}", machineId, User.Identity?.Name);
+                return NoContent();
             }
-            catch (Exception ex) { 
-                return "FAIL : " + ex.Message + Environment.NewLine + ex.StackTrace;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete machine {MachineName}", machineId);
+                return Problem("Failed to delete machine.");
             }
         }
 

@@ -6,6 +6,11 @@
 <PageTitle>Machines view</PageTitle>
 <p>Machines, sync staus, versions ...</p>
 
+@if (deleteError != null)
+{
+    <p role="alert" style="color: red;">@deleteError</p>
+}
+
 @if (machines == null)
 {
     <p><em>Loading...</em></p>
@@ -32,7 +37,7 @@ else
         <GridColumn HeaderText="Actions" TextAlign="TextAlign.Center" Width="120">
                 <Template>
                     @{
-                        Machines.Machine machine = (context as Machines.Machine);
+                        var machine = (Machines.Machine)context;
 
                         <button @onclick="() => DeleteMachine(machine)">Delete</button>
                     }
@@ -43,7 +48,7 @@ else
         <GridTemplates>
             <DetailTemplate>
                 @{
-                    var machine = (context as Machines.Machine);
+                    var machine = (Machines.Machine)context;
                     <table class="detailtable" width="100%">
                         <colgroup>
                             <col width="100%">
@@ -77,7 +82,8 @@ else
 @code {
 
 
-    private List<Machines.Machine> machines;
+    private List<Machines.Machine>? machines;
+    private string? deleteError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,7 +95,7 @@ else
 
     public void CustomizeCell(QueryCellInfoEventArgs<Machines.Machine> args)
     {
-        if (args.Column.Field == "LastSync")
+        if (args.Column?.Field == nameof(Machines.Machine.LastSync) && args.Data != null && args.Cell != null)
         {
             if (args.Data.LastSync < DateTime.Now.AddDays(-10) )
             {
@@ -100,8 +106,14 @@ else
 
     private async Task DeleteMachine(Machines.Machine machine) 
     {
-        string url_del = Navigator.BaseUri + "machines/delete?machineId=" + machine.MachineName;
-        var result = await Http.GetAsync(url_del);
+        string url_del = Navigator.BaseUri + "machines/delete?machineId=" + Uri.EscapeDataString(machine.MachineName ?? string.Empty);
+        var result = await Http.DeleteAsync(url_del);
+        if (!result.IsSuccessStatusCode && result.StatusCode != System.Net.HttpStatusCode.NotFound)
+        {
+            deleteError = $"Delete of {machine.MachineName} failed ({(int)result.StatusCode}).";
+            return;
+        }
+        deleteError = null;
 
         //refresh
         string url = Navigator.BaseUri + "machines/get";
