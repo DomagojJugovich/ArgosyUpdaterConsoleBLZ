@@ -49,30 +49,7 @@ else
             <DetailTemplate>
                 @{
                     var machine = (Machines.Machine)context;
-                    <table class="detailtable" width="100%">
-                        <colgroup>
-                            <col width="100%">
-                        </colgroup>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <span style="font-weight: 500; font-size:large; color: forestgreen;">LogChanges : </span>
-                                    <div style="white-space: pre-wrap; word-break: break-all; font-family: Consolas, monospace; font-size: small; max-height: 400px; overflow: auto;">@machine.LogChanges</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span style="font-weight: 500; font-size:large; "> </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <span style="font-weight: 500; font-size:large; color: red;" >LogErrors :  </span>
-                                    <div style="white-space: pre-wrap; word-break: break-all; font-family: Consolas, monospace; font-size: small; max-height: 400px; overflow: auto;">@machine.LogErrors</div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <MachineLogDetail MachineName="@machine.MachineName" />
                 }
             </DetailTemplate>
         </GridTemplates>

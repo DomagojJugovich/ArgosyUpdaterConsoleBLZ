@@ -19,5 +19,12 @@ namespace ArgosyUpdaterConsoleBLZ.Shared
             public string? ArgosyUpdaterVersion { get; set; }
 
         }
+
+        // Full log text for one machine, loaded on demand when the grid detail row is expanded.
+        public class MachineLogs
+        {
+            public string? LogChanges { get; set; }
+            public string? LogErrors { get; set; }
+        }
     }
 }

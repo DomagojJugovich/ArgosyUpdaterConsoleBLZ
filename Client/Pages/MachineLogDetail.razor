@@ -1,0 +1,62 @@
+@using ArgosyUpdaterConsoleBLZ.Shared
+@inject HttpClient Http
+@inject NavigationManager Navigator
+
+@* Grid detail row content; instantiated when the row is expanded, so the full log is fetched only then. *@
+
+@if (error != null)
+{
+    <p role="alert" style="color: red;">@error</p>
+}
+else if (logs == null)
+{
+    <p><em>Loading logs...</em></p>
+}
+else
+{
+    <table class="detailtable" width="100%">
+        <colgroup>
+            <col width="100%">
+        </colgroup>
+        <tbody>
+            <tr>
+                <td>
+                    <span style="font-weight: 500; font-size:large; color: forestgreen;">LogChanges : </span>
+                    <div style="white-space: pre-wrap; word-break: break-all; font-family: Consolas, monospace; font-size: small; max-height: 400px; overflow: auto;">@logs.LogChanges</div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span style="font-weight: 500; font-size:large; "> </span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span style="font-weight: 500; font-size:large; color: red;" >LogErrors :  </span>
+                    <div style="white-space: pre-wrap; word-break: break-all; font-family: Consolas, monospace; font-size: small; max-height: 400px; overflow: auto;">@logs.LogErrors</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string? MachineName { get; set; }
+
+    private Machines.MachineLogs? logs;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string url = Navigator.BaseUri + "machines/logs?machineId=" + Uri.EscapeDataString(MachineName ?? string.Empty);
+        try
+        {
+            logs = await Http.GetFromJsonAsync<Machines.MachineLogs>(url);
+        }
+        catch (HttpRequestException ex)
+        {
+            error = $"Loading logs for {MachineName} failed ({(int?)ex.StatusCode}).";
+        }
+    }
+}
