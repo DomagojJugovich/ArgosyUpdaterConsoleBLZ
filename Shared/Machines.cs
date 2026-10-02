@@ -37,6 +37,11 @@ namespace ArgosyUpdaterConsoleBLZ.Shared
             public int InError { get; set; }
             // Highest ArgosyUpdaterVersion found in the database.
             public string? LatestVersion { get; set; }
+            // Machines with at least one AppFolderVersions entry ("APPNAME version" per line) lower than
+            // the highest version of that app in the database. Machines without entries are not counted.
+            public int WaitingForAppUpgrade { get; set; }
+            // Highest version per app, e.g. "ARGOSY 2026.10.2.2".
+            public List<string> LatestAppVersions { get; set; } = new();
         }
     }
 }

@@ -82,15 +82,17 @@
 
 .counters-title {
     font-weight: 600;
-    margin-bottom: 0.5rem;
 }
 
-    .counters-title .latest {
-        font-weight: normal;
-        font-size: 0.75rem;
-        opacity: 0.7;
-        margin-left: 0.25rem;
-    }
+.counters .latest {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.counters-title + .counter,
+.counters .latest + .counter {
+    margin-top: 0.4rem;
+}
 
 .counter {
     display: flex;

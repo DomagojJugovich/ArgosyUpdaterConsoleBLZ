@@ -57,19 +57,43 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
         public async Task<Machines.MachineStats> Stats(CancellationToken cancellationToken)
         {
             var rows = await _db.ArgosyUpdaterMachines.AsNoTracking()
-                .Select(m => new { m.ArgosyUpdaterVersion, HasError = m.LogErrors != null && m.LogErrors != "" })
+                .Select(m => new { m.ArgosyUpdaterVersion, m.AppFolderVersions, HasError = m.LogErrors != null && m.LogErrors != "" })
                 .ToListAsync(cancellationToken);
 
             var versions = rows.Select(r => Version.TryParse(r.ArgosyUpdaterVersion, out var v) ? v : null).ToList();
             var latest = versions.Where(v => v != null).DefaultIfEmpty().Max();
+
+            var appVersions = rows.Select(r => ParseAppVersions(r.AppFolderVersions)).ToList();
+            var latestApps = appVersions.SelectMany(a => a)
+                .GroupBy(a => a.App, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.Max(a => a.Version)!, StringComparer.OrdinalIgnoreCase);
 
             return new Machines.MachineStats
             {
                 Total = rows.Count,
                 WaitingForUpgrade = latest == null ? 0 : versions.Count(v => v == null || v < latest),
                 InError = rows.Count(r => r.HasError),
-                LatestVersion = latest?.ToString()
+                LatestVersion = latest?.ToString(),
+                WaitingForAppUpgrade = appVersions.Count(apps => apps.Any(a => a.Version < latestApps[a.App])),
+                LatestAppVersions = latestApps.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key} {kv.Value}").ToList()
             };
+        }
+
+        // AppFolderVersions holds one "APPNAME version" entry per line, e.g. "ARGOSY 2026.10.2.2\r\n".
+        // Lines without a parseable version are ignored.
+        private static List<(string App, Version Version)> ParseAppVersions(string? appFolderVersions)
+        {
+            var result = new List<(string App, Version Version)>();
+            if (string.IsNullOrWhiteSpace(appFolderVersions))
+                return result;
+
+            foreach (var line in appFolderVersions.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                int sep = line.LastIndexOf(' ');
+                if (sep > 0 && Version.TryParse(line[(sep + 1)..], out var version))
+                    result.Add((line[..sep].Trim(), version));
+            }
+            return result;
         }
 
         [HttpDelete]

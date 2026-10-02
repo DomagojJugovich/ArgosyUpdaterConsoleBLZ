@@ -25,17 +25,24 @@
         </nav>
 
         <div class="counters px-3">
-            <div class="counters-title nav-text">
-                Machines
-                @if (StatsService.Stats?.LatestVersion != null)
-                {
-                    <span class="latest">latest AU @StatsService.Stats.LatestVersion</span>
-                }
-            </div>
-            <div class="counter" title="Waiting for upgrade (ArgosyUpdater older than @(StatsService.Stats?.LatestVersion ?? "latest"))">
+            <div class="counters-title nav-text">Machines</div>
+            @if (StatsService.Stats?.LatestVersion != null)
+            {
+                <div class="latest nav-text">latest AU @StatsService.Stats.LatestVersion</div>
+            }
+            @foreach (var app in StatsService.Stats?.LatestAppVersions ?? new())
+            {
+                <div class="latest nav-text">latest @app</div>
+            }
+            <div class="counter" title="Waiting for AU upgrade (ArgosyUpdater older than @(StatsService.Stats?.LatestVersion ?? "latest"))">
                 <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
-                <span class="nav-text label">Waiting for upgrade</span>
+                <span class="nav-text label">Waiting for AU upgrade</span>
                 <span class="badge bg-warning text-dark">@Display(s => s.WaitingForUpgrade)</span>
+            </div>
+            <div class="counter" title="Waiting for app upgrade (App versions older than @LatestAppsText)">
+                <span class="oi oi-layers" aria-hidden="true"></span>
+                <span class="nav-text label">Waiting for app upgrade</span>
+                <span class="badge bg-warning text-dark">@Display(s => s.WaitingForAppUpgrade)</span>
             </div>
             <div class="counter" title="In error (machines with logged errors)">
                 <span class="oi oi-warning" aria-hidden="true"></span>
@@ -91,6 +98,9 @@
         theme = theme == "dark" ? "light" : "dark";
         await JS.InvokeVoidAsync("appTheme.set", theme);
     }
+
+    private string LatestAppsText =>
+        StatsService.Stats?.LatestAppVersions.Count > 0 ? string.Join(", ", StatsService.Stats.LatestAppVersions) : "latest";
 
     private string Display(Func<ArgosyUpdaterConsoleBLZ.Shared.Machines.MachineStats, int> selector) =>
         StatsService.Stats == null ? "-" : selector(StatsService.Stats).ToString();
