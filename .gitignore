@@ -364,5 +364,5 @@ FodyWeavers.xsd
 # Client config with Syncfusion license key, see Client/appsettings.template.json
 Client/wwwroot/appsettings.json
 
-# Server machine-specific config (connection string, admin group), see Server/appsettings.Local.template.json
-Server/appsettings.Local.json
+# Server config (connection string, admin group), see Server/appsettings.template.json
+Server/appsettings.json

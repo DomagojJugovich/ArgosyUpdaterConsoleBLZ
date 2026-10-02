@@ -13,19 +13,15 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 
 builder.Host.UseWindowsService();
 
-// Machine-specific settings (connection string, admin group) live in the git-ignored appsettings.Local.json
-// next to the exe, see appsettings.Local.template.json. It is not part of publish, so redeploys don't overwrite it.
-// Environment variables and command line are re-added so they still take precedence.
-builder.Configuration
-    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: false)
-    .AddEnvironmentVariables()
-    .AddCommandLine(args);
+// All settings (connection string, admin group, logging) live in the git-ignored appsettings.json next to the exe,
+// see appsettings.template.json. It is not part of publish, so redeploys don't overwrite it.
+// Environment variables (e.g. ConnectionStrings__ArgosyUpdater) override it.
 
 // Add services to the container.
 
 var connectionString = builder.Configuration.GetConnectionString("ArgosyUpdater");
 if (string.IsNullOrWhiteSpace(connectionString))
-    throw new InvalidOperationException("Connection string 'ConnectionStrings:ArgosyUpdater' is required (appsettings.Local.json or environment variable ConnectionStrings__ArgosyUpdater).");
+    throw new InvalidOperationException("Connection string 'ConnectionStrings:ArgosyUpdater' is required (appsettings.json or environment variable ConnectionStrings__ArgosyUpdater).");
 
 builder.Services.AddDbContext<MyDbContext>(options => options.UseSqlServer(connectionString));
 
