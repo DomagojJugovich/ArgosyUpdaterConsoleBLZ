@@ -1,0 +1,1 @@
+$env:Authorization__AdminGroup = 'DU\ARGOSYRAZVOJ'; dotnet run --project Server --no-launch-profile --urls http://localhost:18443
