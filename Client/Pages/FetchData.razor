@@ -24,7 +24,7 @@ else
 {
     <div class="stale-toolbar">
         <label for="staleDays">Not synced for</label>
-        <input id="staleDays" type="number" min="1" max="3650" class="form-control form-control-sm"
+        <input id="staleDays" type="number" min="1" max="@MaxStaleDays" class="form-control form-control-sm"
                @bind="StaleDays" @bind:event="onchange" @bind:after="OnStaleDaysChanged" />
         <span>days or more: <strong>@StaleCount</strong> highlighted</span>
         <button class="btn btn-sm btn-danger" disabled="@(StaleCount == 0 || deletingStale)" @onclick="DeleteStaleMachines"
@@ -82,6 +82,8 @@ else
 
     private const string StaleDaysStorageKey = "staleDays";
     private const int DefaultStaleDays = 10;
+    // Upper bound keeps DateTime.Now.AddDays(-StaleDays) valid; same limit as MachinesController.MaxStaleDays.
+    private const int MaxStaleDays = 3650;
 
     private SfGrid<Machines.Machine>? grid;
     private List<Machines.Machine>? machines;
@@ -100,8 +102,8 @@ else
     {
         try
         {
-            if (int.TryParse(await JS.InvokeAsync<string?>("localStorage.getItem", StaleDaysStorageKey), out var stored) && stored >= 1)
-                StaleDays = stored;
+            if (int.TryParse(await JS.InvokeAsync<string?>("localStorage.getItem", StaleDaysStorageKey), out var stored))
+                StaleDays = Math.Clamp(stored, 1, MaxStaleDays);
         }
         catch (JSException) { }
 
@@ -121,8 +123,7 @@ else
 
     private async Task OnStaleDaysChanged()
     {
-        if (StaleDays < 1)
-            StaleDays = 1;
+        StaleDays = Math.Clamp(StaleDays, 1, MaxStaleDays);
 
         try
         {
@@ -137,7 +138,9 @@ else
 
     private async Task DeleteStaleMachines()
     {
-        int count = StaleCount;
+        // Send exactly the highlighted machines the user confirms; the server deletes only those still stale.
+        var names = machines?.Where(m => m.LastSync < StaleCutoff && m.MachineName != null).Select(m => m.MachineName!).ToList() ?? new();
+        int count = names.Count;
         if (count == 0)
             return;
 
@@ -147,7 +150,11 @@ else
         deletingStale = true;
         try
         {
-            var result = await Http.DeleteAsync(Navigator.BaseUri + "machines/deletestale?olderThanDays=" + StaleDays);
+            var request = new HttpRequestMessage(HttpMethod.Delete, Navigator.BaseUri + "machines/deletestale?olderThanDays=" + StaleDays)
+            {
+                Content = JsonContent.Create(names)
+            };
+            var result = await Http.SendAsync(request);
             if (!result.IsSuccessStatusCode)
             {
                 deleteError = $"Delete of stale machines failed ({(int)result.StatusCode}).";

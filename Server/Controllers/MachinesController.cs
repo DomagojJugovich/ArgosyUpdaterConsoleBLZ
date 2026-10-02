@@ -95,18 +95,24 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
             }
         }
 
-        // Deletes machines whose LastSync is older than olderThanDays (same rule as the red row highlight in the grid).
+        // Max threshold accepted from the client (same limit as FetchData.MaxStaleDays).
+        private const int MaxStaleDays = 3650;
+
+        // Deletes the machines the user confirmed (body: machine names), but only those whose LastSync is still
+        // older than olderThanDays, so machines that synced after the page loaded are kept.
         [HttpDelete]
-        public async Task<ActionResult<int>> DeleteStale(int olderThanDays, CancellationToken cancellationToken)
+        public async Task<ActionResult<int>> DeleteStale(int olderThanDays, [FromBody] List<string> machineNames, CancellationToken cancellationToken)
         {
-            if (olderThanDays < 1)
-                return BadRequest("olderThanDays must be at least 1.");
+            if (olderThanDays < 1 || olderThanDays > MaxStaleDays)
+                return BadRequest($"olderThanDays must be between 1 and {MaxStaleDays}.");
+            if (machineNames.Count == 0)
+                return BadRequest("machineNames must not be empty.");
 
             var cutoff = DateTime.Now.AddDays(-olderThanDays);
             try
             {
                 var deleted = await _db.ArgosyUpdaterMachines
-                    .Where(m => m.LastSync < cutoff)
+                    .Where(m => m.MachineName != null && machineNames.Contains(m.MachineName) && m.LastSync < cutoff)
                     .ExecuteDeleteAsync(cancellationToken);
 
                 _logger.LogInformation("{Count} machines not synced since {Cutoff} deleted by {User}", deleted, cutoff, User.Identity?.Name);
