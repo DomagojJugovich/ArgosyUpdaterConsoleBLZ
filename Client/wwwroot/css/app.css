@@ -63,3 +63,17 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+/* Toolbar above the machines grid (stale threshold + bulk delete). */
+.stale-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+    .stale-toolbar input {
+        width: 5.5rem;
+    }

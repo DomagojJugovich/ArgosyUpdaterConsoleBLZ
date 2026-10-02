@@ -1,8 +1,10 @@
-﻿@page "/fetchdata"
+﻿@page "/"
+@page "/fetchdata"
 @using ArgosyUpdaterConsoleBLZ.Shared
 @inject HttpClient Http
 @inject NavigationManager Navigator
 @inject MachineStatsService StatsService
+@inject IJSRuntime JS
 
 <PageTitle>Machines view</PageTitle>
 
@@ -20,14 +22,25 @@
 }
 else
 {
+    <div class="stale-toolbar">
+        <label for="staleDays">Not synced for</label>
+        <input id="staleDays" type="number" min="1" max="3650" class="form-control form-control-sm"
+               @bind="StaleDays" @bind:event="onchange" @bind:after="OnStaleDaysChanged" />
+        <span>days or more: <strong>@StaleCount</strong> highlighted</span>
+        <button class="btn btn-sm btn-danger" disabled="@(StaleCount == 0 || deletingStale)" @onclick="DeleteStaleMachines"
+                title="Delete all machines not synced for @StaleDays days or more">
+            Delete @StaleCount stale
+        </button>
+    </div>
+
     <div style="flex: 1; min-height: 0;">
-    <SfGrid DataSource="@machines" Width="100%" Height="100%" ClipMode=ClipMode.Ellipsis 
+    <SfGrid @ref="grid" DataSource="@machines" Width="100%" Height="100%" ClipMode=ClipMode.Ellipsis 
                 AllowPaging="true" AllowSorting="true" AllowFiltering="true" AllowResizing="true" AllowGrouping="true" AllowMultiSorting="true" AllowReordering="true" >
         <GridPageSettings PageSizes="@(new string[] { "20", "100", "200", "500", "All" })" PageSize="20"></GridPageSettings>
 
         <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
 
-        <GridEvents QueryCellInfo="CustomizeCell" TValue="Machines.Machine"></GridEvents>
+        <GridEvents RowDataBound="OnRowDataBound" TValue="Machines.Machine"></GridEvents>
 
         <GridColumns>
         <GridColumn Field=@nameof(Machines.Machine.MachineName) HeaderText="Machine Name" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
@@ -67,25 +80,87 @@ else
 @code {
 
 
+    private const string StaleDaysStorageKey = "staleDays";
+    private const int DefaultStaleDays = 10;
+
+    private SfGrid<Machines.Machine>? grid;
     private List<Machines.Machine>? machines;
     private string? deleteError;
+    private bool deletingStale;
+
+    // Machines with LastSync older than this many days are highlighted and can be bulk-deleted.
+    // Same rule as MachinesController.DeleteStale; stored per browser.
+    private int StaleDays { get; set; } = DefaultStaleDays;
+
+    private DateTime StaleCutoff => DateTime.Now.AddDays(-StaleDays);
+
+    private int StaleCount => machines?.Count(m => m.LastSync < StaleCutoff) ?? 0;
 
     protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            if (int.TryParse(await JS.InvokeAsync<string?>("localStorage.getItem", StaleDaysStorageKey), out var stored) && stored >= 1)
+                StaleDays = stored;
+        }
+        catch (JSException) { }
+
         string url = Navigator.BaseUri + "machines/get";
         
         machines = await Http.GetFromJsonAsync<List<Machines.Machine>>(url);
       
     }
 
-    public void CustomizeCell(QueryCellInfoEventArgs<Machines.Machine> args)
+    public void OnRowDataBound(RowDataBoundEventArgs<Machines.Machine> args)
     {
-        if (args.Column?.Field == nameof(Machines.Machine.LastSync) && args.Data != null && args.Cell != null)
+        if (args.Data != null && args.Row != null && args.Data.LastSync < StaleCutoff)
         {
-            if (args.Data.LastSync < DateTime.Now.AddDays(-10) )
+            args.Row.AddClass(new string[] { "stale-row" });
+        }
+    }
+
+    private async Task OnStaleDaysChanged()
+    {
+        if (StaleDays < 1)
+            StaleDays = 1;
+
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", StaleDaysStorageKey, StaleDays.ToString());
+        }
+        catch (JSException) { }
+
+        // Re-run RowDataBound so the highlight follows the new threshold.
+        if (grid != null)
+            await grid.Refresh();
+    }
+
+    private async Task DeleteStaleMachines()
+    {
+        int count = StaleCount;
+        if (count == 0)
+            return;
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"Delete {count} machine(s) not synced for {StaleDays} days or more?\n\nThis cannot be undone."))
+            return;
+
+        deletingStale = true;
+        try
+        {
+            var result = await Http.DeleteAsync(Navigator.BaseUri + "machines/deletestale?olderThanDays=" + StaleDays);
+            if (!result.IsSuccessStatusCode)
             {
-                args.Cell.AddClass(new string[] { "stale-sync" });
+                deleteError = $"Delete of stale machines failed ({(int)result.StatusCode}).";
+                return;
             }
+            deleteError = null;
+
+            machines = await Http.GetFromJsonAsync<List<Machines.Machine>>(Navigator.BaseUri + "machines/get");
+            await StatsService.RefreshAsync();
+        }
+        finally
+        {
+            deletingStale = false;
         }
     }
 

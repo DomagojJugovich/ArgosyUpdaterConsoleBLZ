@@ -62,8 +62,8 @@ html.e-dark-mode {
     --color-sf-primary-darker: #fdba74;
 }
 
-/* Grid cell for machines that have not synced recently (FetchData.CustomizeCell). */
-.e-grid .e-rowcell.stale-sync {
+/* Grid row for machines not synced for the configured number of days (FetchData.OnRowDataBound). */
+.e-grid .e-row.stale-row .e-rowcell {
     background-color: var(--app-stale-sync-bg);
     color: var(--app-stale-sync-fg);
 }

@@ -95,5 +95,29 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
             }
         }
 
+        // Deletes machines whose LastSync is older than olderThanDays (same rule as the red row highlight in the grid).
+        [HttpDelete]
+        public async Task<ActionResult<int>> DeleteStale(int olderThanDays, CancellationToken cancellationToken)
+        {
+            if (olderThanDays < 1)
+                return BadRequest("olderThanDays must be at least 1.");
+
+            var cutoff = DateTime.Now.AddDays(-olderThanDays);
+            try
+            {
+                var deleted = await _db.ArgosyUpdaterMachines
+                    .Where(m => m.LastSync < cutoff)
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                _logger.LogInformation("{Count} machines not synced since {Cutoff} deleted by {User}", deleted, cutoff, User.Identity?.Name);
+                return deleted;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete machines not synced since {Cutoff}", cutoff);
+                return Problem("Failed to delete stale machines.");
+            }
+        }
+
     }
 }
