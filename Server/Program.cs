@@ -1,5 +1,7 @@
+using ArgosyUpdaterConsoleBLZ.Server;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 // The default content root is the current directory (%WINDIR%\System32 for a Windows Service),
 // so always point it at the application folder where appsettings.json and wwwroot are published.
@@ -11,7 +13,21 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 
 builder.Host.UseWindowsService();
 
+// Machine-specific settings (connection string, admin group) live in the git-ignored appsettings.Local.json
+// next to the exe, see appsettings.Local.template.json. It is not part of publish, so redeploys don't overwrite it.
+// Environment variables and command line are re-added so they still take precedence.
+builder.Configuration
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: false)
+    .AddEnvironmentVariables()
+    .AddCommandLine(args);
+
 // Add services to the container.
+
+var connectionString = builder.Configuration.GetConnectionString("ArgosyUpdater");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("Connection string 'ConnectionStrings:ArgosyUpdater' is required (appsettings.Local.json or environment variable ConnectionStrings__ArgosyUpdater).");
+
+builder.Services.AddDbContext<MyDbContext>(options => options.UseSqlServer(connectionString));
 
 // Windows authentication (Kerberos/NTLM) against the du.laus.hr domain.
 // Every endpoint, including static files and the WASM payload, requires membership in the admin group.

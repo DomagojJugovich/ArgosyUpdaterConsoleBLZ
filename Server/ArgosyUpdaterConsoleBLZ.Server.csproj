@@ -15,6 +15,18 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
   </ItemGroup>
 
+  <!-- appsettings.Local.json (git-ignored): copied to bin for development, never published
+       so a redeploy doesn't overwrite the server's copy. The template is not part of any output. -->
+  <ItemGroup>
+    <Content Update="appsettings.Local.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
+    <Content Remove="appsettings.Local.template.json" />
+    <None Include="appsettings.Local.template.json" />
+  </ItemGroup>
+
+  <Target Name="WarnMissingServerLocalSettings" BeforeTargets="Build" Condition="!Exists('appsettings.Local.json')">
+    <Warning Text="Server/appsettings.Local.json is missing - copy Server/appsettings.Local.template.json and set ConnectionStrings:ArgosyUpdater and Authorization:AdminGroup (or use environment variables)." />
+  </Target>
+
   <ItemGroup>
     <ProjectReference Include="..\Client\ArgosyUpdaterConsoleBLZ.Client.csproj" />
     <ProjectReference Include="..\Shared\ArgosyUpdaterConsoleBLZ.Shared.csproj" />

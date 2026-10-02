@@ -5,14 +5,9 @@ namespace ArgosyUpdaterConsoleBLZ.Server
 {
     public class MyDbContext : DbContext
     {
-
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        // Configured in Program.cs from ConnectionStrings:ArgosyUpdater.
+        public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer(@"Server=sql-developer;Database=XArgosyUpdater;TrustServerCertificate=true;User Id=lauscc;Password=berlin");
-            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

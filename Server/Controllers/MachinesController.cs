@@ -10,10 +10,12 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
     {
 
         private readonly ILogger<MachinesController> _logger;
+        private readonly MyDbContext _db;
 
-        public MachinesController(ILogger<MachinesController> logger)
+        public MachinesController(ILogger<MachinesController> logger, MyDbContext db)
         {
             _logger = logger;
+            _db = db;
         }
 
         // Max length of LogChanges/LogErrors returned in the list; full text is served by Logs().
@@ -24,8 +26,7 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
         {
 
             //direct fetch from DB, logs truncated to a preview (full logs can be several hundred KB per machine)
-            using MyDbContext myDbContext = new MyDbContext();
-            return await myDbContext.ArgosyUpdaterMachines.AsNoTracking()
+            return await _db.ArgosyUpdaterMachines.AsNoTracking()
                 .Select(m => new Machines.Machine
                 {
                     MachineName = m.MachineName,
@@ -44,8 +45,7 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<Machines.MachineLogs>> Logs(string machineId, CancellationToken cancellationToken)
         {
-            using MyDbContext myDbContext = new MyDbContext();
-            var logs = await myDbContext.ArgosyUpdaterMachines.AsNoTracking()
+            var logs = await _db.ArgosyUpdaterMachines.AsNoTracking()
                 .Where(m => m.MachineName == machineId)
                 .Select(m => new Machines.MachineLogs { LogChanges = m.LogChanges, LogErrors = m.LogErrors })
                 .FirstOrDefaultAsync(cancellationToken);
@@ -56,8 +56,7 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
         [HttpGet]
         public async Task<Machines.MachineStats> Stats(CancellationToken cancellationToken)
         {
-            using MyDbContext myDbContext = new MyDbContext();
-            var rows = await myDbContext.ArgosyUpdaterMachines.AsNoTracking()
+            var rows = await _db.ArgosyUpdaterMachines.AsNoTracking()
                 .Select(m => new { m.ArgosyUpdaterVersion, HasError = m.LogErrors != null && m.LogErrors != "" })
                 .ToListAsync(cancellationToken);
 
@@ -79,13 +78,12 @@ namespace ArgosyUpdaterConsoleBLZ.Server.Controllers
 
             try
             {
-                using MyDbContext myDbContext = new MyDbContext();
-                var mch = await myDbContext.ArgosyUpdaterMachines.FirstOrDefaultAsync(s => s.MachineName == machineId, cancellationToken);
+                var mch = await _db.ArgosyUpdaterMachines.FirstOrDefaultAsync(s => s.MachineName == machineId, cancellationToken);
                 if (mch == null)
                     return NotFound();
 
-                myDbContext.ArgosyUpdaterMachines.Remove(mch);
-                await myDbContext.SaveChangesAsync(cancellationToken);
+                _db.ArgosyUpdaterMachines.Remove(mch);
+                await _db.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation("Machine {MachineName} deleted by {User}", machineId, User.Identity?.Name);
                 return NoContent();
