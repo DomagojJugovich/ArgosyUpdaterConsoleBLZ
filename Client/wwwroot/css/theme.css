@@ -67,3 +67,14 @@ html.e-dark-mode {
     background-color: var(--app-stale-sync-bg);
     color: var(--app-stale-sync-fg);
 }
+
+/* Dark mode: the Syncfusion bootstrap5.3 dark theme paints a selected row that is also hovered with a light
+   background (light text on light grey). Keep one dark-orange selection color with and without hover.
+   !important is needed to beat the theme's high-specificity hover selectors. */
+html.e-dark-mode .e-grid .e-rowcell.e-selectionbackground,
+html.e-dark-mode .e-grid .e-row:hover .e-rowcell.e-selectionbackground,
+html.e-dark-mode .e-grid .e-detailrowcollapse.e-selectionbackground,
+html.e-dark-mode .e-grid .e-row:hover .e-detailrowcollapse.e-selectionbackground {
+    background-color: rgba(var(--color-sf-primary-shadow), .28) !important;
+    color: #f8f9fa !important;
+}
