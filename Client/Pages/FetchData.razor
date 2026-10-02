@@ -46,7 +46,7 @@ else
         <GridColumn Field=@nameof(Machines.Machine.MachineName) HeaderText="Machine Name" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
         <GridColumn Field=@nameof(Machines.Machine.IPadress) HeaderText="IP " Width="140" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
         <GridColumn Field=@nameof(Machines.Machine.UserName) HeaderText="User Name" Width="125" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
-        <GridColumn Field=@nameof(Machines.Machine.LastSync) HeaderText="Sync Date" Format="dd.MM.yyyy hh:mm" Type="ColumnType.DateTime" TextAlign="TextAlign.Right" Width="110"></GridColumn>
+        <GridColumn Field=@nameof(Machines.Machine.LastSync) HeaderText="Sync Date" Format="dd.MM.yyyy HH:mm" Type="ColumnType.DateTime" TextAlign="TextAlign.Right" Width="110"></GridColumn>
         <GridColumn Field=@nameof(Machines.Machine.AppFolderVersions) HeaderText="App versions" Width="130" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
         <GridColumn Field=@nameof(Machines.Machine.ArgosyUpdaterVersion) HeaderText="AU version" Width="95"></GridColumn>
         <GridColumn Field=@nameof(Machines.Machine.LogChanges) HeaderText="Log Changes" Width="150" FilterSettings="@(new FilterSettings{ Operator = Operator.Contains })"></GridColumn>
