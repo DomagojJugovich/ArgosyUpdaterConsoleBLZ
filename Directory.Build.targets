@@ -1,0 +1,21 @@
+<Project>
+
+  <!-- Syncfusion.Blazor.Themes ships ~50 themes (~280 MB in publish incl. .br/.gz variants).
+       Keep only the theme referenced in Client/wwwroot/index.html; change both together.
+       Applies to Client and Server: Server gets the package assets transitively via the Client reference. -->
+  <PropertyGroup>
+    <SyncfusionThemeInUse>bootstrap5.3.css</SyncfusionThemeInUse>
+  </PropertyGroup>
+
+  <Target Name="RemoveUnusedSyncfusionThemes" BeforeTargets="UpdateExistingPackageStaticWebAssets">
+    <ItemGroup>
+      <_UnusedSyncfusionTheme Include="@(StaticWebAsset)" Condition="'%(StaticWebAsset.SourceId)' == 'Syncfusion.Blazor.Themes' and '%(StaticWebAsset.RelativePath)' != '$(SyncfusionThemeInUse)'">
+        <AssetFile>%(Identity)</AssetFile>
+      </_UnusedSyncfusionTheme>
+      <StaticWebAsset Remove="@(_UnusedSyncfusionTheme)" />
+      <StaticWebAssetEndpoint Remove="@(_UnusedSyncfusionTheme)" MatchOnMetadata="AssetFile" MatchOnMetadataOptions="PathLike" />
+    </ItemGroup>
+    <Message Importance="normal" Text="$(MSBuildProjectName): removed @(_UnusedSyncfusionTheme->Count()) unused Syncfusion theme assets" />
+  </Target>
+
+</Project>
