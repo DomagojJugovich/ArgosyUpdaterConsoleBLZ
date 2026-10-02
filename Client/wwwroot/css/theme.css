@@ -1,0 +1,69 @@
+/* Warm (orange) palette for Bootstrap 5.3 and the Syncfusion bootstrap5.3 theme.
+   Loaded after the Syncfusion stylesheet so these variables win.
+   Light primary #c2410c keeps >= 4.5:1 contrast with white text. */
+
+:root {
+    --app-sidebar-bg: linear-gradient(180deg, #7c2d12 0%, #c2410c 100%);
+    --app-stale-sync-bg: #fecdd3;
+    --app-stale-sync-fg: #4c0519;
+    --app-log-changes-label: #15803d;
+    --app-log-errors-label: #dc2626;
+
+    --bs-primary: #c2410c;
+    --bs-primary-rgb: 194, 65, 12;
+    --bs-link-color: #c2410c;
+    --bs-link-color-rgb: 194, 65, 12;
+    --bs-link-hover-color: #9a3412;
+    --bs-link-hover-color-rgb: 154, 52, 18;
+}
+
+:root {
+    --color-sf-primary: rgba(194, 65, 12, 1);
+    --color-sf-primary-shadow: 194, 65, 12;
+    --color-sf-primary-bg-color-hover: #9a3412;
+    --color-sf-primary-bg-color-pressed: #7c2d12;
+    --color-sf-primary-bg-color-disabled: rgba(194, 65, 12, .65);
+    --color-sf-primary-border-color-hover: #7c2d12;
+    --color-sf-primary-border-color-pressed: #7c2d12;
+    --color-sf-primary-light: #fdba74;
+    --color-sf-primary-lighter: #ffedd5;
+    --color-sf-primary-dark: #9a3412;
+    --color-sf-primary-darker: #7c2d12;
+}
+
+html[data-bs-theme=dark] {
+    --app-sidebar-bg: linear-gradient(180deg, #1c1009 0%, #431407 100%);
+    --app-stale-sync-bg: #5c1a24;
+    --app-stale-sync-fg: #fecdd3;
+    --app-log-changes-label: #4ade80;
+    --app-log-errors-label: #f87171;
+
+    --bs-link-color: #fb923c;
+    --bs-link-color-rgb: 251, 146, 60;
+    --bs-link-hover-color: #fdba74;
+    --bs-link-hover-color-rgb: 253, 186, 116;
+}
+
+/* html.e-dark-mode is needed for specificity over the Syncfusion .e-dark-mode block.
+   Lighter orange with dark text on primary buttons keeps >= 4.5:1 contrast on dark backgrounds. */
+html.e-dark-mode {
+    --color-sf-primary: rgba(251, 146, 60, 1);
+    --color-sf-primary-shadow: 251, 146, 60;
+    --color-sf-primary-text-color: #1c1917;
+    --color-sf-primary-text-disabled: rgba(28, 25, 23, .65);
+    --color-sf-primary-bg-color-hover: #fdba74;
+    --color-sf-primary-bg-color-pressed: #f97316;
+    --color-sf-primary-bg-color-disabled: rgba(251, 146, 60, .65);
+    --color-sf-primary-border-color-hover: #fdba74;
+    --color-sf-primary-border-color-pressed: #f97316;
+    --color-sf-primary-light: #9a3412;
+    --color-sf-primary-lighter: #2a1408;
+    --color-sf-primary-dark: #ea580c;
+    --color-sf-primary-darker: #fdba74;
+}
+
+/* Grid cell for machines that have not synced recently (FetchData.CustomizeCell). */
+.e-grid .e-rowcell.stale-sync {
+    background-color: var(--app-stale-sync-bg);
+    color: var(--app-stale-sync-fg);
+}

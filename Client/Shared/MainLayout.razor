@@ -1,8 +1,9 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
+    <div class="sidebar @(sidebarCollapsed ? "collapsed" : null)">
+        <NavMenu Collapsed="sidebarCollapsed" OnToggleCollapsed="ToggleSidebar" />
     </div>
 
     <main>
@@ -15,3 +16,33 @@
         </article>
     </main>
 </div>
+
+@code {
+    private const string SidebarStorageKey = "sidebarCollapsed";
+    private bool sidebarCollapsed;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        // Restore the per-browser sidebar state; ignore storage errors (private mode, blocked storage).
+        try
+        {
+            sidebarCollapsed = await JS.InvokeAsync<string?>("localStorage.getItem", SidebarStorageKey) == "true";
+            if (sidebarCollapsed)
+                StateHasChanged();
+        }
+        catch (JSException) { }
+    }
+
+    private async Task ToggleSidebar()
+    {
+        sidebarCollapsed = !sidebarCollapsed;
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", SidebarStorageKey, sidebarCollapsed ? "true" : "false");
+        }
+        catch (JSException) { }
+    }
+}

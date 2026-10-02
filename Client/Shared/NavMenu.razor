@@ -1,34 +1,114 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">ArgosyUpdaterConsole</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+@implements IDisposable
+@inject MachineStatsService StatsService
+@inject IJSRuntime JS
+
+<div class="nav-root @(Collapsed ? "mini" : null)">
+    <div class="top-row ps-3 navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="">ArgosyUpdater</a>
+            <button title="@(Collapsed ? "Expand sidebar" : "Collapse sidebar")" class="sidebar-toggler" @onclick="OnToggleCollapsed">
+                <span class="oi @(Collapsed ? "oi-chevron-right" : "oi-chevron-left")" aria-hidden="true"></span>
+            </button>
+            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+        <nav class="flex-column">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Home">
+                    <span class="oi oi-home" aria-hidden="true"></span><span class="nav-text"> Home</span>
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="fetchdata" title="Machines view">
+                    <span class="oi oi-list-rich" aria-hidden="true"></span><span class="nav-text"> Machines view</span>
+                </NavLink>
+            </div>
+        </nav>
+
+        <div class="counters px-3">
+            <div class="counters-title nav-text">
+                Machines
+                @if (StatsService.Stats?.LatestVersion != null)
+                {
+                    <span class="latest">latest AU @StatsService.Stats.LatestVersion</span>
+                }
+            </div>
+            <div class="counter" title="Waiting for upgrade (ArgosyUpdater older than @(StatsService.Stats?.LatestVersion ?? "latest"))">
+                <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                <span class="nav-text label">Waiting for upgrade</span>
+                <span class="badge bg-warning text-dark">@Display(s => s.WaitingForUpgrade)</span>
+            </div>
+            <div class="counter" title="In error (machines with logged errors)">
+                <span class="oi oi-warning" aria-hidden="true"></span>
+                <span class="nav-text label">In error</span>
+                <span class="badge bg-danger">@Display(s => s.InError)</span>
+            </div>
+            <div class="counter" title="Total machines">
+                <span class="oi oi-monitor" aria-hidden="true"></span>
+                <span class="nav-text label">Total</span>
+                <span class="badge bg-secondary">@Display(s => s.Total)</span>
+            </div>
+        </div>
+
+        <div class="theme-toggle px-3">
+            <button class="theme-btn" title="@(theme == "dark" ? "Switch to light mode" : "Switch to dark mode")" @onclick="ToggleTheme" @onclick:stopPropagation="true">
+                <span class="oi @(theme == "dark" ? "oi-sun" : "oi-moon")" aria-hidden="true"></span><span class="nav-text"> @(theme == "dark" ? "Light mode" : "Dark mode")</span>
+            </button>
+        </div>
     </div>
 </div>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Machines view
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
 @code {
+    [Parameter]
+    public bool Collapsed { get; set; }
+
+    [Parameter]
+    public EventCallback OnToggleCollapsed { get; set; }
+
     private bool collapseNavMenu = true;
 
+    // "light" or "dark"; actual theme is applied by wwwroot/js/theme.js before Blazor starts.
+    private string theme = "light";
+
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        StatsService.Changed += OnStatsChanged;
+        await StatsService.RefreshAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        theme = await JS.InvokeAsync<string>("appTheme.get");
+        StateHasChanged();
+    }
+
+    private async Task ToggleTheme()
+    {
+        theme = theme == "dark" ? "light" : "dark";
+        await JS.InvokeVoidAsync("appTheme.set", theme);
+    }
+
+    private string Display(Func<ArgosyUpdaterConsoleBLZ.Shared.Machines.MachineStats, int> selector) =>
+        StatsService.Stats == null ? "-" : selector(StatsService.Stats).ToString();
+
+    private void OnStatsChanged() => InvokeAsync(StateHasChanged);
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    public void Dispose()
+    {
+        StatsService.Changed -= OnStatsChanged;
     }
 }

@@ -2,13 +2,16 @@
 @using ArgosyUpdaterConsoleBLZ.Shared
 @inject HttpClient Http
 @inject NavigationManager Navigator
+@inject MachineStatsService StatsService
 
 <PageTitle>Machines view</PageTitle>
-<p>Machines, sync staus, versions ...</p>
+
+@* Fills the content area; the grid takes the remaining height. *@
+<div style="display: flex; flex-direction: column; height: 100%;">
 
 @if (deleteError != null)
 {
-    <p role="alert" style="color: red;">@deleteError</p>
+    <p role="alert" style="color: red; margin-bottom: 0.5rem;">@deleteError</p>
 }
 
 @if (machines == null)
@@ -17,6 +20,7 @@
 }
 else
 {
+    <div style="flex: 1; min-height: 0;">
     <SfGrid DataSource="@machines" Width="100%" Height="100%" ClipMode=ClipMode.Ellipsis 
                 AllowPaging="true" AllowSorting="true" AllowFiltering="true" AllowResizing="true" AllowGrouping="true" AllowMultiSorting="true" AllowReordering="true" >
         <GridPageSettings PageSizes="@(new string[] { "5", "10", "15", "20", "50", "All" })" PageSize="15"></GridPageSettings>
@@ -55,8 +59,10 @@ else
         </GridTemplates>
 
      </SfGrid>
-
+    </div>
 }
+
+</div>
 
 @code {
 
@@ -78,7 +84,7 @@ else
         {
             if (args.Data.LastSync < DateTime.Now.AddDays(-10) )
             {
-                args.Cell.AddStyle(new string[] { "background-color: LightPink" });
+                args.Cell.AddClass(new string[] { "stale-sync" });
             }
         }
     }
@@ -97,6 +103,6 @@ else
         //refresh
         string url = Navigator.BaseUri + "machines/get";
         machines = await Http.GetFromJsonAsync<List<Machines.Machine>>(url);
-        
+        await StatsService.RefreshAsync();
     }
 }

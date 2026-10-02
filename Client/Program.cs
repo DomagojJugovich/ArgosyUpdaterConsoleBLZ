@@ -9,6 +9,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
+builder.Services.AddScoped<MachineStatsService>();
+
 builder.Services.AddSyncfusionBlazor();
 // License key is read from wwwroot/appsettings.json (not in source control, see appsettings.template.json).
 var syncfusionLicenseKey = builder.Configuration["Syncfusion:LicenseKey"];

@@ -1,4 +1,4 @@
-.navbar-toggler {
+﻿.navbar-toggler {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -9,6 +9,13 @@
 
 .navbar-brand {
     font-size: 1.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.top-row .container-fluid {
+    flex-wrap: nowrap;
 }
 
 .oi {
@@ -32,7 +39,7 @@
     }
 
     .nav-item ::deep a {
-        color: #d7d7d7;
+        color: #e7e5e4;
         border-radius: 4px;
         height: 3rem;
         display: flex;
@@ -50,10 +57,130 @@
     color: white;
 }
 
+.sidebar-toggler {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #e7e5e4;
+    padding: 0.25rem;
+}
+
+    .sidebar-toggler:hover {
+        color: white;
+    }
+
+    .sidebar-toggler .oi {
+        width: auto;
+    }
+
+.counters {
+    color: #e7e5e4;
+    font-size: 0.85rem;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 0.75rem;
+}
+
+.counters-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+    .counters-title .latest {
+        font-weight: normal;
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-left: 0.25rem;
+    }
+
+.counter {
+    display: flex;
+    align-items: center;
+    padding: 0.3rem 0;
+}
+
+    .counter .label {
+        flex: 1;
+    }
+
+    .counter .badge {
+        min-width: 2.25rem;
+    }
+
+.theme-toggle {
+    border-top: 1px solid rgba(255,255,255,0.15);
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+}
+
+.theme-btn {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #e7e5e4;
+    font-size: 0.85rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.4rem 0;
+}
+
+    .theme-btn:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+    }
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;
     }
+
+    .sidebar-toggler {
+        display: block;
+    }
+
+    /* Collapsed (icon-only) sidebar */
+    .mini .navbar-brand,
+    .mini .nav-text {
+        display: none;
+    }
+
+    .mini .top-row {
+        padding-left: 0 !important;
+    }
+
+        .mini .top-row .container-fluid {
+            justify-content: center;
+            padding: 0;
+        }
+
+    .mini .nav-item,
+    .mini .counters,
+    .mini .theme-toggle {
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+
+        .mini .nav-item ::deep a {
+            justify-content: center;
+        }
+
+        .mini .nav-item ::deep .oi {
+            width: auto;
+        }
+
+    .mini .counter {
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+        .mini .theme-btn {
+            text-align: center;
+        }
+
+        .mini .counter .badge {
+            min-width: 0;
+            width: 100%;
+        }
 
     .collapse {
         /* Never collapse the sidebar for wide screens */

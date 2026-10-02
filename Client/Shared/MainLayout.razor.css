@@ -1,4 +1,4 @@
-.page {
+﻿.page {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -9,7 +9,7 @@ main {
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    background-image: var(--app-sidebar-bg);
 }
 
 .top-row {
@@ -60,6 +60,11 @@ main {
         height: 100vh;
         position: sticky;
         top: 0;
+        transition: width 0.15s ease;
+    }
+
+    .sidebar.collapsed {
+        width: 56px;
     }
 
     .top-row {
@@ -75,7 +80,26 @@ main {
     }
 
     .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    /* Full-height layout so pages (machines grid) can fill the viewport. */
+    .page {
+        height: 100vh;
+    }
+
+    main {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    article {
+        flex: 1;
+        min-height: 0;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
     }
 }

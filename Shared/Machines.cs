@@ -26,5 +26,17 @@ namespace ArgosyUpdaterConsoleBLZ.Shared
             public string? LogChanges { get; set; }
             public string? LogErrors { get; set; }
         }
+
+        // Sidebar counters.
+        public class MachineStats
+        {
+            public int Total { get; set; }
+            // Machines whose ArgosyUpdaterVersion is lower than LatestVersion (or missing/unparseable).
+            public int WaitingForUpgrade { get; set; }
+            // Machines with non-empty LogErrors.
+            public int InError { get; set; }
+            // Highest ArgosyUpdaterVersion found in the database.
+            public string? LatestVersion { get; set; }
+        }
     }
 }
