@@ -1,1 +1,9 @@
 dotnet run --project Server --no-launch-profile --urls http://localhost:18443
+
+
+Isto će se dogoditi svakome tko povuče novi master. Git će mu obrisati Server/appsettings.json, pa ga treba napraviti iz predloška:
+
+cp Server/appsettings.template.json Server/appsettings.json
+Isto vrijedi za Client:
+
+cp Client/appsettings.template.json Client/wwwroot/appsettings.json
