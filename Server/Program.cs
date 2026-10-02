@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Hosting.WindowsServices;
 
-// When running as a Windows Service the default content root is %WINDIR%\System32,
-// so point it at the application folder (appsettings.json, wwwroot).
+// The default content root is the current directory (%WINDIR%\System32 for a Windows Service),
+// so always point it at the application folder where appsettings.json and wwwroot are published.
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
-    ContentRootPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : default
+    ContentRootPath = AppContext.BaseDirectory
 });
 
 builder.Host.UseWindowsService();
