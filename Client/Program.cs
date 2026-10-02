@@ -1,4 +1,4 @@
-using ArgosyUpdaterConsoleBLZ.Client;
+﻿using ArgosyUpdaterConsoleBLZ.Client;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Syncfusion.Blazor;
@@ -10,7 +10,12 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 builder.Services.AddSyncfusionBlazor();
-Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("SYNCFUSION_V35_LICENSE_KEY");
+// License key is read from wwwroot/appsettings.json (not in source control, see appsettings.template.json).
+var syncfusionLicenseKey = builder.Configuration["Syncfusion:LicenseKey"];
+if (string.IsNullOrWhiteSpace(syncfusionLicenseKey))
+    Console.Error.WriteLine("Syncfusion:LicenseKey is missing in wwwroot/appsettings.json; Syncfusion will show a license banner.");
+else
+    Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionLicenseKey);
 
 
 await builder.Build().RunAsync();

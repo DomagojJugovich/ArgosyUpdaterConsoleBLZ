@@ -17,4 +17,14 @@
     <ProjectReference Include="..\Shared\ArgosyUpdaterConsoleBLZ.Shared.csproj" />
   </ItemGroup>
 
+  <!-- Template for the git-ignored wwwroot/appsettings.json; not part of the build output. -->
+  <ItemGroup>
+    <Content Remove="appsettings.template.json" />
+    <None Include="appsettings.template.json" />
+  </ItemGroup>
+
+  <Target Name="WarnMissingClientAppSettings" BeforeTargets="Build" Condition="!Exists('wwwroot\appsettings.json')">
+    <Warning Text="Client/wwwroot/appsettings.json is missing - copy Client/appsettings.template.json and set Syncfusion:LicenseKey, otherwise Syncfusion shows a license banner." />
+  </Target>
+
 </Project>

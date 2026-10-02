@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Client config with Syncfusion license key, see Client/appsettings.template.json
+Client/wwwroot/appsettings.json
